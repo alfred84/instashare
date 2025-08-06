@@ -5,10 +5,17 @@
 
 import express from 'express';
 import * as path from 'path';
+import { AuthController } from './app/auth.controller';
 
 const app = express();
 
+// Middleware to parse JSON bodies
+app.use(express.json());
+
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+// Wire up the authentication routes
+app.use('/api/auth', AuthController);
 
 app.get('/api', (req, res) => {
   res.send({ message: 'Welcome to backend-api!' });
