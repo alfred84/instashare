@@ -59,8 +59,18 @@ router.get('/:id', async (req: AuthenticatedRequest, res) => {
 });
 
 // DELETE /api/files/:id - Delete a specific file
-router.delete('/:id', (req: AuthenticatedRequest, res) => {
-  res.status(501).json({ message: 'File delete not implemented' });
+router.delete('/:id', async (req: AuthenticatedRequest, res) => {
+  try {
+    const result = await filesService.deleteFile(req.params.id, req.user.userId);
+
+    if (!result) {
+      return res.status(404).json({ message: 'File not found or access denied.' });
+    }
+
+    res.status(204).send(); // No Content
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting file.', error: error.message });
+  }
 });
 
 export const FilesController = router;

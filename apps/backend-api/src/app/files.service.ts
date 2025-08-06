@@ -53,8 +53,20 @@ export class FilesService {
 
   // Logic to delete a file record
   async deleteFile(fileId: string, userId: string) {
-    // TODO: Implement file deletion
-    console.log(`Deleting file ${fileId} for user ${userId}`);
-    return { message: 'deleteFile not implemented' };
+    const file = await prisma.file.findUnique({
+      where: { id: fileId, ownerId: userId },
+    });
+
+    // If no file is found for that user, return null
+    if (!file) {
+      return null;
+    }
+
+    // If the file is found and owned by the user, delete it
+    await prisma.file.delete({
+      where: { id: fileId },
+    });
+
+    return { success: true };
   }
 }
