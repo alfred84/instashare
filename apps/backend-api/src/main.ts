@@ -7,6 +7,7 @@ import express from 'express';
 import * as path from 'path';
 import { AuthController } from './app/auth.controller';
 import { authMiddleware, AuthenticatedRequest } from './app/auth.middleware';
+import { FilesController } from './app/files.controller';
 
 const app = express();
 
@@ -17,6 +18,9 @@ app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // Wire up the authentication routes
 app.use('/api/auth', AuthController);
+
+// Wire up the file management routes
+app.use('/api/files', FilesController);
 
 app.get('/api', (req, res) => {
   res.send({ message: 'Welcome to backend-api!' });
