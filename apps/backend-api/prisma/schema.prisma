@@ -13,3 +13,37 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// Enum for the status of a file
+enum FileStatus {
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// User model for authentication and ownership
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  files File[] // A user can have many files
+}
+
+// File model for storing uploaded file information
+model File {
+  id           String     @id @default(cuid())
+  originalName String
+  status       FileStatus @default(UPLOADED)
+  size         Int
+  mimeType     String
+  fileData     Bytes
+  zippedData   Bytes?
+  createdAt    DateTime   @default(now())
+
+  // Relation to the User model
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String
+}
