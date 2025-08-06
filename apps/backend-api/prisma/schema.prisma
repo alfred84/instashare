@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum for the status of a file
+enum FileStatus {
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// User model for authentication and ownership
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  files File[] // A user can have many files
+}
+
+// File model for storing uploaded file information
+model File {
+  id           String     @id @default(cuid())
+  originalName String
+  status       FileStatus @default(UPLOADED)
+  size         Int
+  mimeType     String
+  fileData     Bytes
+  zippedData   Bytes?
+  createdAt    DateTime   @default(now())
+
+  // Relation to the User model
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId String
+}
