@@ -1,14 +1,21 @@
-import express from 'express';
+import { FileProcessorService } from './app/file.processor.service';
 
-const host = process.env.HOST ?? 'localhost';
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+// This service will run as a standalone worker.
+// It does not need to listen on any port for HTTP requests.
 
-const app = express();
+console.log('Initializing file processor...');
 
-app.get('/', (req, res) => {
-  res.send({ message: 'Hello API' });
+const fileProcessor = new FileProcessorService();
+
+fileProcessor.start().catch((error) => {
+  console.error('File processor failed to start:', error);
+  process.exit(1);
 });
 
-app.listen(port, host, () => {
-  console.log(`[ ready ] http://${host}:${port}`);
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('Shutting down file processor...');
+  // Here you would add any cleanup logic, like closing database connections
+  process.exit(0);
 });
+
