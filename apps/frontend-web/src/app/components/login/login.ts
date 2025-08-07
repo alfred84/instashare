@@ -38,15 +38,17 @@ export class Login {
   login(): void {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      this.authService.login({ email: email!, password: password! }).subscribe({
-        next: () => {
-          // Navigation is handled in the service
-        },
-        error: (err) => {
-          console.error('Login failed', err);
-          // Here you would typically show an error message to the user
-        },
-      });
+      if (email && password) {
+        this.authService.login({ email, password }).subscribe({
+          next: () => {
+            // Navigation is handled in the service
+          },
+          error: (err) => {
+            console.error('Login failed', err);
+            // Here you would typically show an error message to the user
+          },
+        });
+      }
     }
   }
 }
