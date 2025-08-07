@@ -1,11 +1,86 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Auth } from '../../services/auth';
+import { FileService, UserFile } from '../../services/file';
+import { saveAs } from 'file-saver';
+
+// Material Imports
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatListModule,
+    MatIconModule,
+    MatToolbarModule,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css'
+  styleUrls: ['./dashboard.css'],
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
+  private authService = inject(Auth);
+  private fileService = inject(FileService);
 
+  files = signal<UserFile[]>([]);
+  isLoading = signal<boolean>(false);
+
+  ngOnInit(): void {
+    this.loadFiles();
+  }
+
+  loadFiles(): void {
+    this.isLoading.set(true);
+    this.fileService.getFiles().subscribe({
+      next: (files) => {
+        this.files.set(files);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('Error loading files', err);
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.isLoading.set(true);
+      this.fileService.uploadFile(file).subscribe({
+        next: () => {
+          this.loadFiles(); // Refresh the file list
+        },
+        error: (err) => {
+          console.error('Error uploading file', err);
+          this.isLoading.set(false);
+        },
+      });
+    }
+  }
+
+  downloadFile(file: UserFile): void {
+    this.fileService.downloadFile(file.id).subscribe({
+      next: (blob) => {
+        saveAs(blob, file.originalName);
+      },
+      error: (err) => {
+        console.error('Error downloading file', err);
+      },
+    });
+  }
+
+  logout(): void {
+    this.authService.logout();
+  }
 }
