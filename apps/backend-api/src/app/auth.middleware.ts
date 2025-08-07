@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { Multer } from 'multer';
+
 
 // Extend the Express Request type to include our custom user property
 export interface AuthenticatedRequest extends Request {
   user?: { userId: string };
-  file?: Multer.File;
+    file?: Express.Multer.File;
 }
 
 export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

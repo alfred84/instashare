@@ -22,7 +22,13 @@ export class AuthService {
       },
     });
 
-    return { message: `User ${user.email} registered successfully.` };
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      'YOUR_JWT_SECRET',
+      { expiresIn: '1h' }
+    );
+
+    return { accessToken: token };
   }
 
   async login(credentials: LoginDto) {

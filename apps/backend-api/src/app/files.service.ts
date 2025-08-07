@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import { Multer } from 'multer';
+
 
 const prisma = new PrismaClient();
 
 export class FilesService {
   // Logic to create a file record in the database
-  async createFile(file: Multer.File, userId: string) {
+  async createFile(file: Express.Multer.File, userId: string) {
     const newFile = await prisma.file.create({
       data: {
         originalName: file.originalname,
