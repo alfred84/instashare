@@ -71,6 +71,15 @@ export class FilesService {
   async getFile(fileId: string, userId: string) {
     const file = await prisma.file.findUnique({
       where: { id: fileId },
+      select: {
+        id: true,
+        originalName: true,
+        status: true,
+        mimeType: true,
+        fileData: true,
+        zippedData: true,
+        ownerId: true,
+      },
     });
 
     // Ensure the file exists and the user is the owner

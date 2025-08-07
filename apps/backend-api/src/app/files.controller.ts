@@ -47,12 +47,30 @@ router.get('/:id', async (req: AuthenticatedRequest, res) => {
       return res.status(404).json({ message: 'File not found or access denied.' });
     }
 
-    // Set headers to trigger browser download
-    res.setHeader('Content-Type', file.mimeType);
-    res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
+    // Add detailed logging for debugging
+    console.log('--- Initiating File Download ---');
+    console.log(`File ID: ${file.id}, Status: ${file.status}`);
+    console.log(`Zipped Data Exists: ${!!file.zippedData}`);
+    console.log(`Zipped Data Length: ${file.zippedData ? file.zippedData.length : 'N/A'}`);
+    console.log('---------------------------------');
 
-    // Send the binary file data
-    res.send(file.fileData);
+    // Handle file download based on its status
+    if (file.status === 'COMPLETED' && file.zippedData) {
+      console.log('Action: Serving compressed (zipped) file.');
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}.zip"`);
+      res.send(file.zippedData);
+    } else if (file.status === 'UPLOADED' || file.status === 'PROCESSING') {
+      console.log('Action: Responding with 202 - file is processing.');
+      res.status(202).json({ message: 'File is still being processed. Please try again later.' });
+    } else if (file.status === 'FAILED') {
+      console.log('Action: Responding with 500 - file processing failed.');
+      res.status(500).json({ message: 'File processing failed. Please try re-uploading the file.' });
+    } else {
+      console.log('Action: Responding with 500 - unexpected status or missing data.');
+      // This case should ideally not be reached if status is handled correctly
+      res.status(500).json({ message: 'An unexpected error occurred.' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Error downloading file.', error: error.message });
   }

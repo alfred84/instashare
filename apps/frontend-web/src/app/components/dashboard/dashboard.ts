@@ -76,7 +76,7 @@ export class Dashboard implements OnInit {
   downloadFile(file: UserFile): void {
     this.fileService.downloadFile(file.id).subscribe({
       next: (blob) => {
-        saveAs(blob, file.originalName);
+        saveAs(blob, `${file.originalName}.zip`);
       },
       error: (err) => {
         console.error('Error downloading file', err);
