@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client';
+import Redis from 'ioredis';
 
 
 const prisma = new PrismaClient();
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 export class FilesService {
   // Logic to rename a file
@@ -38,6 +40,11 @@ export class FilesService {
         ownerId: userId,
       },
     });
+
+    // Publish a message to the 'file-uploaded' channel with the new file's ID
+    if (newFile) {
+      await redis.publish('file-uploaded', newFile.id);
+    }
 
     // We don't return the fileData to avoid sending large binary data back
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
