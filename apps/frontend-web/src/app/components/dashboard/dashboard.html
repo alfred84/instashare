@@ -27,7 +27,13 @@
           <mat-list-item *ngFor="let file of files()">
             <mat-icon matListItemIcon>insert_drive_file</mat-icon>
             <div matListItemTitle>{{ file.originalName }}</div>
-            <div matListItemLine>{{ (file.size / 1024) | number:'1.2-2' }} KB</div>
+            <div matListItemLine>
+              <span>{{ (file.size / 1024) | number:'1.2-2' }} KB</span>
+              <span class="file-status">{{ file.status }}</span>
+            </div>
+            <button mat-icon-button (click)="openRenameDialog(file)">
+              <mat-icon>edit</mat-icon>
+            </button>
             <button mat-icon-button (click)="downloadFile(file)" aria-label="Download file">
               <mat-icon>cloud_download</mat-icon>
             </button>

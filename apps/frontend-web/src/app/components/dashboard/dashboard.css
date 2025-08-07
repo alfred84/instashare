@@ -19,8 +19,22 @@ mat-card-actions {
 
 .no-files-message {
   text-align: center;
-  padding: 2rem;
+  padding: 20px;
   color: #888;
+}
+
+.file-status {
+  display: inline-block;
+  padding: 4px 8px;
+  margin-left: 16px;
+  border-radius: 4px;
+  background-color: #e0e0e0; /* Light grey for a neutral, button-like look */
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle; /* Align with the text next to it */
 }
 
 mat-list-item button {

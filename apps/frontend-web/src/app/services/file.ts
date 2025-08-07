@@ -10,6 +10,7 @@ export interface UserFile {
   size: number;
   mimeType: string;
   createdAt: string;
+  status: string;
 }
 
 @Injectable({
@@ -38,6 +39,12 @@ export class FileService { // Renamed from 'File' to avoid conflict
     formData.append('file', file);
 
     return this.http.post<UserFile>(`${this.apiUrl}/upload`, formData, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  renameFile(fileId: string, newName: string): Observable<UserFile> {
+    return this.http.patch<UserFile>(`${this.apiUrl}/${fileId}/rename`, { newName }, {
       headers: this.getAuthHeaders(),
     });
   }

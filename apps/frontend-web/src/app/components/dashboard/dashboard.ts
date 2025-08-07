@@ -11,6 +11,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { RenameDialog } from '../rename-dialog/rename-dialog';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,6 +25,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatIconModule,
     MatToolbarModule,
     MatProgressSpinnerModule,
+    MatDialogModule,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
@@ -30,6 +33,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export class Dashboard implements OnInit {
   private authService = inject(Auth);
   private fileService = inject(FileService);
+  private dialog = inject(MatDialog);
 
   files = signal<UserFile[]>([]);
   isLoading = signal<boolean>(false);
@@ -82,5 +86,35 @@ export class Dashboard implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  openRenameDialog(file: UserFile): void {
+    const dialogRef = this.dialog.open(RenameDialog, {
+      width: '500px',
+      data: { fileName: file.originalName },
+    });
+
+    dialogRef.afterClosed().subscribe(newName => {
+      if (newName && newName !== file.originalName) {
+        this.isLoading.set(true);
+        this.fileService.renameFile(file.id, newName).subscribe({
+          next: (updatedFile) => {
+            this.files.update(currentFiles => {
+              const index = currentFiles.findIndex(f => f.id === file.id);
+              const newFiles = [...currentFiles];
+              if (index !== -1) {
+                newFiles[index] = updatedFile;
+              }
+              return newFiles;
+            });
+            this.isLoading.set(false);
+          },
+          error: (err) => {
+            console.error('Error renaming file', err);
+            this.isLoading.set(false);
+          },
+        });
+      }
+    });
   }
 }

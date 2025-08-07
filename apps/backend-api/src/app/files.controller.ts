@@ -73,4 +73,26 @@ router.delete('/:id', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+
+// PATCH /api/files/:id/rename - Rename a specific file
+router.patch('/:id/rename', async (req: AuthenticatedRequest, res) => {
+  const { newName } = req.body;
+
+  if (!newName) {
+    return res.status(400).json({ message: 'New name is required.' });
+  }
+
+  try {
+    const result = await filesService.renameFile(req.params.id, req.user.userId, newName);
+
+    if (!result) {
+      return res.status(404).json({ message: 'File not found or access denied.' });
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Error renaming file.', error: error.message });
+  }
+});
+
 export const FilesController = router;
