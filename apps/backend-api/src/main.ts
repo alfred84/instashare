@@ -5,11 +5,15 @@
 
 import express from 'express';
 import * as path from 'path';
+import cors from 'cors';
 import { AuthController } from './app/auth.controller';
 import { authMiddleware, AuthenticatedRequest } from './app/auth.middleware';
 import { FilesController } from './app/files.controller';
 
 const app = express();
+
+// Enable CORS for the frontend app
+app.use(cors({ origin: 'http://localhost:4201' }));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
