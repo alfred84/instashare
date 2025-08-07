@@ -43,7 +43,7 @@ export class FileService { // Renamed from 'File' to avoid conflict
   }
 
   downloadFile(fileId: string): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/${fileId}/download`, {
+    return this.http.get(`${this.apiUrl}/${fileId}`, {
       headers: this.getAuthHeaders(),
       responseType: 'blob',
     });
