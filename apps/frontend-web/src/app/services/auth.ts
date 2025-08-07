@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { jwtDecode } from 'jwt-decode';
 
 // Interfaces
 export interface User {
@@ -40,13 +41,23 @@ export class Auth {
   private router = inject(Router);
 
   constructor() {
-    // Rehydrate auth state from localStorage on service initialization
     const token = localStorage.getItem('auth_token');
     if (token) {
-      // In a real app, you would decode the token to get user info and expiration
-      // For simplicity, we'll just set the token and assume it's valid.
-      // A dedicated method to fetch the current user profile would be better.
-      this.authState.update((state) => ({ ...state, token }));
+      try {
+        const decodedToken: { userId: string; email: string; exp: number } = jwtDecode(token);
+        if (decodedToken.exp * 1000 > Date.now()) {
+          const user: User = {
+            id: decodedToken.userId,
+            email: decodedToken.email,
+          };
+          this.authState.set({ currentUser: user, token: token });
+        } else {
+          localStorage.removeItem('auth_token');
+        }
+      } catch (error) {
+        localStorage.removeItem('auth_token');
+        console.error('Invalid token in localStorage', error);
+      }
     }
   }
 
@@ -72,10 +83,12 @@ export class Auth {
 
   private handleAuthSuccess(response: AuthResponse): void {
     localStorage.setItem('auth_token', response.accessToken);
-    // Decode token to get user info (simplified for this example)
-    // In a real app, use a library like jwt-decode
-    const decodedUser: User = { id: 'temp-id', email: 'user@example.com' }; // Placeholder
-    this.authState.set({ currentUser: decodedUser, token: response.accessToken });
+    const decodedToken: { userId: string; email: string } = jwtDecode(response.accessToken);
+    const user: User = {
+      id: decodedToken.userId,
+      email: decodedToken.email,
+    };
+    this.authState.set({ currentUser: user, token: response.accessToken });
     this.router.navigate(['/dashboard']);
   }
 
