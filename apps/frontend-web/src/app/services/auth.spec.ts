@@ -46,12 +46,10 @@ describe('Auth - behaviors', () => {
   });
 
   function toBase64(value: string): string {
-    if (typeof (globalThis as any).btoa === 'function') {
-      return (globalThis as any).btoa(value);
-    }
-    // Fallback for environments without btoa
-    // Minimal polyfill
-    return Buffer.from(value, 'binary').toString('base64');
+    // Use btoa with Unicode-safe encoding; jsdom provides btoa in tests
+    const encoder = (str: string) =>
+      (globalThis as any).btoa(unescape(encodeURIComponent(str)));
+    return encoder(value);
   }
 
   function fakeJwt(payload: Record<string, unknown>): string {
