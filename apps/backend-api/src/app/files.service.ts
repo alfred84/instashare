@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
+import type { UploadedFile } from './auth.middleware';
 
 
 const prisma = new PrismaClient();
@@ -30,7 +31,7 @@ export class FilesService {
   }
 
   // Logic to create a file record in the database
-  async createFile(file: Express.Multer.File, userId: string) {
+  async createFile(file: UploadedFile, userId: string) {
     const newFile = await prisma.file.create({
       data: {
         originalName: file.originalname,

@@ -2,10 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 
 
+// Minimal type for a Multer in-memory uploaded file to avoid relying on Express.Multer types
+export interface UploadedFile {
+  originalname: string;
+  size: number;
+  mimetype: string;
+  buffer: Buffer;
+}
+
 // Extend the Express Request type to include our custom user property
 export interface AuthenticatedRequest extends Request {
   user?: { userId: string };
-    file?: Express.Multer.File;
+    file?: UploadedFile;
 }
 
 export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
