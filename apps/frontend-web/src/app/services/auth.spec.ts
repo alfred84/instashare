@@ -45,9 +45,18 @@ describe('Auth - behaviors', () => {
     jest.restoreAllMocks();
   });
 
+  function toBase64(value: string): string {
+    if (typeof (globalThis as any).btoa === 'function') {
+      return (globalThis as any).btoa(value);
+    }
+    // Fallback for environments without btoa
+    // Minimal polyfill
+    return Buffer.from(value, 'binary').toString('base64');
+  }
+
   function fakeJwt(payload: Record<string, unknown>): string {
-    const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64');
-    const body = Buffer.from(JSON.stringify(payload)).toString('base64');
+    const header = toBase64(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+    const body = toBase64(JSON.stringify(payload));
     return `${header}.${body}.`; // signature not verified by jwt-decode
   }
 
