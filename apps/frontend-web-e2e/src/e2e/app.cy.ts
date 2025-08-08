@@ -1,13 +1,7 @@
-import { getGreeting } from '../support/app.po';
-
-describe('frontend-web-e2e', () => {
-  beforeEach(() => cy.visit('/'));
-
-  it('should display welcome message', () => {
-    // Custom command example, see `../support/commands.ts` file
-    cy.login('my-email@something.com', 'myPassword');
-
-    // Function helper example, see `../support/app.po.ts` file
-    getGreeting().contains(/Welcome/);
+describe('Login page smoke', () => {
+  it('shows the Login form', () => {
+    cy.visit('/login');
+    cy.contains('mat-card-title', 'Login');
+    cy.get('button[type="submit"]').should('be.disabled');
   });
 });

@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+export {};
 
 // ***********************************************
 // This example commands.ts shows you how to
@@ -15,14 +16,49 @@ declare global {
   namespace Cypress {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Chainable<Subject> {
-      login(email: string, password: string): void;
+      loginByUI(email: string, password: string): Chainable<void>;
+      loginByApi(email: string, password: string): Chainable<void>;
+      registerByApi(email: string, password: string): Chainable<void>;
+      logout(): Chainable<void>;
     }
   }
 }
 
-// -- This is a parent command --
-Cypress.Commands.add('login', (email, password) => {
-  console.log('Custom command example: Login', email, password);
+// -- UI login command --
+Cypress.Commands.add('loginByUI', (email: string, password: string) => {
+  cy.visit('/login');
+  cy.get('input[formcontrolname="email"]').type(email);
+  cy.get('input[formcontrolname="password"]').type(password);
+  cy.get('button[type="submit"]').click();
+  cy.location('pathname').should('include', '/dashboard');
+});
+
+// -- API login command --
+Cypress.Commands.add('loginByApi', (email: string, password: string) => {
+  cy.request('POST', 'http://localhost:3333/api/auth/login', { email, password }).then((resp) => {
+    expect(resp.status).to.be.oneOf([200, 201]);
+    const body = resp.body as { accessToken?: string };
+    const token = body.accessToken ?? '';
+    expect(token).to.be.a('string');
+    window.localStorage.setItem('auth_token', token);
+  });
+});
+
+// -- API register command --
+Cypress.Commands.add('registerByApi', (email: string, password: string) => {
+  cy.request({
+    method: 'POST',
+    url: 'http://localhost:3333/api/auth/register',
+    body: { email, password },
+    failOnStatusCode: false, // allow 400 for existing users
+  }).then((resp) => {
+    expect([200, 201, 400]).to.include(resp.status);
+  });
+});
+
+// -- Logout command --
+Cypress.Commands.add('logout', () => {
+  window.localStorage.removeItem('auth_token');
 });
 //
 // -- This is a child command --
