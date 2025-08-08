@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import Redis from 'ioredis';
 const archiver = require('archiver');
 import { Readable } from 'stream';
@@ -58,12 +59,13 @@ export class FileProcessorService {
       );
 
       // 3. Save the compressed data and update status to 'COMPLETED'
+      const updateData: Prisma.FileUpdateInput = {
+        zippedData: new Uint8Array(zippedData),
+        status: 'COMPLETED',
+      };
       const updatedFile = await this.prisma.file.update({
         where: { id: fileId },
-        data: {
-          zippedData: zippedData, // Corrected syntax for Bytes field
-          status: 'COMPLETED',
-        },
+        data: updateData,
       });
 
       console.log(`Successfully processed and compressed file: ${file.originalName}`);
@@ -96,14 +98,14 @@ export class FileProcessorService {
         zlib: { level: 9 }, // Set the compression level
       });
 
-      const chunks: Buffer[] = [];
+      const chunks: Uint8Array[] = [];
 
-                  archive.on('data', (chunk) => {
-        chunks.push(Buffer.from(chunk));
+      archive.on('data', (chunk: Uint8Array) => {
+        chunks.push(chunk);
       });
 
       archive.on('end', () => {
-        resolve(Buffer.concat(chunks as any));
+        resolve(Buffer.concat(chunks));
       });
 
       archive.on('error', (err) => {
