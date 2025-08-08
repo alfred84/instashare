@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Register } from './register';
+import { Auth } from '../../services/auth';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('Register', () => {
   let component: Register;
@@ -8,7 +10,10 @@ describe('Register', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Register]
+      imports: [Register, RouterTestingModule],
+      providers: [
+        { provide: Auth, useValue: { register: jest.fn() } as Partial<Auth> },
+      ],
     })
     .compileComponents();
 
@@ -23,9 +28,9 @@ describe('Register', () => {
 });
 
 // Additional behavior tests
-import { of } from 'rxjs';
-import { Auth } from '../../services/auth';
+import { of, throwError } from 'rxjs';
 import { By } from '@angular/platform-browser';
+import { FormBuilder } from '@angular/forms';
 
 describe('Register - behaviors', () => {
   let component: Register;
@@ -39,7 +44,7 @@ describe('Register - behaviors', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [Register],
+      imports: [Register, RouterTestingModule],
       providers: [{ provide: Auth, useValue: authStub }],
     }).compileComponents();
 
@@ -63,5 +68,30 @@ describe('Register - behaviors', () => {
     const form = fixture.debugElement.query(By.css('form'));
     form.triggerEventHandler('ngSubmit', {});
     expect(registerMock).toHaveBeenCalledWith({ email: 'new@e.com', password: 'password123' });
+  });
+
+  it('should not call Auth.register when form is invalid', () => {
+    const form = fixture.debugElement.query(By.css('form'));
+    form.triggerEventHandler('ngSubmit', {});
+    expect(registerMock).not.toHaveBeenCalled();
+  });
+
+  it('should log error when Auth.register emits error', () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    component.registerForm.setValue({ email: 'new@e.com', password: 'password123' });
+    registerMock.mockReturnValueOnce(throwError(() => new Error('bad')));
+    const form = fixture.debugElement.query(By.css('form'));
+    form.triggerEventHandler('ngSubmit', {});
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('should not call Auth.register when form is valid but missing credentials', () => {
+    // Replace the form with one without validators so it's valid even when empty
+    component.registerForm = new FormBuilder().group({ email: [''], password: [''] });
+    fixture.detectChanges();
+    const form = fixture.debugElement.query(By.css('form'));
+    form.triggerEventHandler('ngSubmit', {});
+    expect(registerMock).not.toHaveBeenCalled();
   });
 });
