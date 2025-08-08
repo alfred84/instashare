@@ -1,11 +1,36 @@
 import { PrismaClient } from '@prisma/client';
-import { Multer } from 'multer';
+import Redis from 'ioredis';
+
 
 const prisma = new PrismaClient();
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 export class FilesService {
+  // Logic to rename a file
+  async renameFile(fileId: string, userId: string, newName: string) {
+    const file = await prisma.file.findUnique({
+      where: { id: fileId, ownerId: userId },
+    });
+
+    // If no file is found for that user, return null
+    if (!file) {
+      return null;
+    }
+
+    // If the file is found and owned by the user, update its name
+    const updatedFile = await prisma.file.update({
+      where: { id: fileId },
+      data: { originalName: newName },
+    });
+
+    // We don't return the fileData to avoid sending large binary data back
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { fileData, ...result } = updatedFile;
+    return result;
+  }
+
   // Logic to create a file record in the database
-  async createFile(file: Multer.File, userId: string) {
+  async createFile(file: Express.Multer.File, userId: string) {
     const newFile = await prisma.file.create({
       data: {
         originalName: file.originalname,
@@ -15,6 +40,11 @@ export class FilesService {
         ownerId: userId,
       },
     });
+
+    // Publish a message to the 'file-uploaded' channel with the new file's ID
+    if (newFile) {
+      await redis.publish('file-uploaded', newFile.id);
+    }
 
     // We don't return the fileData to avoid sending large binary data back
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,6 +71,15 @@ export class FilesService {
   async getFile(fileId: string, userId: string) {
     const file = await prisma.file.findUnique({
       where: { id: fileId },
+      select: {
+        id: true,
+        originalName: true,
+        status: true,
+        mimeType: true,
+        fileData: true,
+        zippedData: true,
+        ownerId: true,
+      },
     });
 
     // Ensure the file exists and the user is the owner

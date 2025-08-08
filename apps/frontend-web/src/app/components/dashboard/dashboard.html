@@ -1,0 +1,49 @@
+<mat-toolbar color="primary">
+  <span>InstaShare Dashboard</span>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="logout()" aria-label="Logout">
+    <mat-icon>exit_to_app</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="dashboard-container">
+  <mat-card>
+    <mat-card-title>Your Files</mat-card-title>
+    <mat-card-actions>
+      <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" />
+      <button mat-raised-button color="primary" (click)="fileInput.click()">
+        <mat-icon>cloud_upload</mat-icon>
+        <span>Upload File</span>
+      </button>
+    </mat-card-actions>
+
+    <mat-card-content>
+      <div *ngIf="isLoading()" class="spinner-container">
+        <mat-spinner></mat-spinner>
+      </div>
+
+      <div *ngIf="!isLoading()">
+        <mat-list *ngIf="files().length > 0; else noFiles">
+          <mat-list-item *ngFor="let file of files()">
+            <mat-icon matListItemIcon>insert_drive_file</mat-icon>
+            <div matListItemTitle>{{ file.originalName }}</div>
+            <div matListItemLine>
+              <span>{{ (file.size / 1024) | number:'1.2-2' }} KB</span>
+              <span class="file-status">{{ file.status }}</span>
+            </div>
+            <button mat-icon-button (click)="openRenameDialog(file)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="downloadFile(file)" aria-label="Download file">
+              <mat-icon>cloud_download</mat-icon>
+            </button>
+          </mat-list-item>
+        </mat-list>
+
+        <ng-template #noFiles>
+          <p class="no-files-message">You haven't uploaded any files yet.</p>
+        </ng-template>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -22,7 +22,13 @@ export class AuthService {
       },
     });
 
-    return { message: `User ${user.email} registered successfully.` };
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      'YOUR_JWT_SECRET',
+      { expiresIn: '1h' }
+    );
+
+    return { accessToken: token };
   }
 
   async login(credentials: LoginDto) {
@@ -39,8 +45,12 @@ export class AuthService {
     }
 
     // TODO: Move secret to environment variables
-    const token = jwt.sign({ userId: user.id }, 'YOUR_JWT_SECRET', { expiresIn: '1h' });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      'YOUR_JWT_SECRET',
+      { expiresIn: '1h' }
+    );
 
-    return { message: 'Login successful', token };
+    return { message: 'Login successful', accessToken: token };
   }
 }

@@ -58,22 +58,35 @@ export class FileProcessorService {
       );
 
       // 3. Save the compressed data and update status to 'COMPLETED'
-      await this.prisma.file.update({
+      const updatedFile = await this.prisma.file.update({
         where: { id: fileId },
         data: {
-          zippedData: { set: zippedData } as any,
+          zippedData: zippedData, // Corrected syntax for Bytes field
           status: 'COMPLETED',
         },
       });
 
       console.log(`Successfully processed and compressed file: ${file.originalName}`);
+
+      // 4. Verify that the zippedData was saved correctly
+      if (updatedFile && updatedFile.zippedData) {
+        console.log(
+          `Verification successful: zippedData of size ${updatedFile.zippedData.length} was saved for file ${file.id}.`
+        );
+      } else {
+        console.error(
+          `Verification FAILED: zippedData is null for file ${file.id} after update operation.`
+        );
+      }
     } catch (error) {
       console.error(`Error processing file ${fileId}:`, error);
       // 4. On error, update status to 'FAILED'
       await this.prisma.file.update({
         where: { id: fileId },
         data: { status: 'FAILED' },
-      }).catch(err => console.error(`Failed to update status to FAILED for file ${fileId}`, err));
+      }).catch((err) =>
+        console.error(`Failed to update status to FAILED for file ${fileId}`, err)
+      );
     }
   }
 
