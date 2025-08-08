@@ -37,9 +37,10 @@ export class FilesService {
         originalName: file.originalname,
         size: file.size,
         mimeType: file.mimetype,
-        fileData: file.buffer, // Store the file's binary data
+        // Ensure the type is compatible with Prisma Bytes by using Buffer.from
+        fileData: Buffer.from(file.buffer),
         ownerId: userId,
-      },
+      } as any,
     });
 
     // Publish a message to the 'file-uploaded' channel with the new file's ID
