@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Login } from './login';
+import { Auth } from '../../services/auth';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('Login', () => {
   let component: Login;
@@ -8,7 +10,10 @@ describe('Login', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Login]
+      imports: [Login, RouterTestingModule],
+      providers: [
+        { provide: Auth, useValue: { login: jest.fn() } as Partial<Auth> },
+      ],
     })
     .compileComponents();
 
@@ -23,9 +28,9 @@ describe('Login', () => {
 });
 
 // Additional behavior tests
-import { of } from 'rxjs';
-import { Auth } from '../../services/auth';
+import { of, throwError } from 'rxjs';
 import { By } from '@angular/platform-browser';
+import { FormBuilder } from '@angular/forms';
 
 describe('Login - behaviors', () => {
   let component: Login;
@@ -39,7 +44,7 @@ describe('Login - behaviors', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [Login],
+      imports: [Login, RouterTestingModule],
       providers: [{ provide: Auth, useValue: authStub }],
     }).compileComponents();
 
@@ -63,5 +68,31 @@ describe('Login - behaviors', () => {
     const form = fixture.debugElement.query(By.css('form'));
     form.triggerEventHandler('ngSubmit', {});
     expect(loginMock).toHaveBeenCalledWith({ email: 'user@example.com', password: 'secret' });
+  });
+
+  it('should not call Auth.login when form is invalid', () => {
+    // form starts invalid by default
+    const form = fixture.debugElement.query(By.css('form'));
+    form.triggerEventHandler('ngSubmit', {});
+    expect(loginMock).not.toHaveBeenCalled();
+  });
+
+  it('should log error when Auth.login emits error', () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    component.loginForm.setValue({ email: 'user@example.com', password: 'secret' });
+    loginMock.mockReturnValueOnce(throwError(() => new Error('bad')));
+    const form = fixture.debugElement.query(By.css('form'));
+    form.triggerEventHandler('ngSubmit', {});
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('should not call Auth.login when form is valid but missing credentials', () => {
+    // Replace the form with one without validators so it's valid even when empty
+    component.loginForm = new FormBuilder().group({ email: [''], password: [''] });
+    fixture.detectChanges();
+    const form = fixture.debugElement.query(By.css('form'));
+    form.triggerEventHandler('ngSubmit', {});
+    expect(loginMock).not.toHaveBeenCalled();
   });
 });
