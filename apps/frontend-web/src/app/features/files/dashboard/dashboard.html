@@ -1,17 +1,20 @@
-<mat-toolbar color="primary">
+<mat-toolbar color="primary" class="top-toolbar">
   <span>InstaShare Dashboard</span>
   <span class="spacer"></span>
-  <button mat-icon-button (click)="logout()" aria-label="Logout">
+  <button mat-icon-button (click)="requestLogout()" aria-label="Logout" matTooltip="Logout">
     <mat-icon>exit_to_app</mat-icon>
   </button>
 </mat-toolbar>
 
 <div class="dashboard-container">
   <mat-card>
-    <mat-card-title>Your Files</mat-card-title>
+    <mat-card-header class="files-header">
+      <mat-card-title>Your Files</mat-card-title>
+    </mat-card-header>
+    <mat-progress-bar *ngIf="isLoading()" mode="indeterminate"></mat-progress-bar>
     <mat-card-actions>
       <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)" />
-      <button mat-raised-button color="primary" (click)="fileInput.click()">
+      <button mat-raised-button color="primary" (click)="fileInput.click()" matTooltip="Upload file">
         <mat-icon>cloud_upload</mat-icon>
         <span>Upload File</span>
       </button>
@@ -21,22 +24,39 @@
       <div *ngIf="isLoading()" class="spinner-container">
         <mat-spinner></mat-spinner>
       </div>
+      <div *ngIf="isLoading()" class="skeleton-list">
+        <div class="skeleton-item" *ngFor="let i of [0,1,2]">
+          <div class="skeleton-icon"></div>
+          <div class="skeleton-text">
+            <div class="skeleton-line w-60"></div>
+            <div class="skeleton-line w-40"></div>
+          </div>
+          <div class="skeleton-actions">
+            <div class="skeleton-circle"></div>
+            <div class="skeleton-circle"></div>
+          </div>
+        </div>
+      </div>
 
       <div *ngIf="!isLoading()">
         <mat-list *ngIf="files().length > 0; else noFiles">
-          <mat-list-item *ngFor="let file of files()">
+          <mat-list-item class="file-item" *ngFor="let file of files(); trackBy: trackById">
             <mat-icon matListItemIcon>insert_drive_file</mat-icon>
             <div matListItemTitle>{{ file.originalName }}</div>
             <div matListItemLine>
               <span>{{ (file.size / 1024) | number:'1.2-2' }} KB</span>
-              <span class="file-status">{{ file.status }}</span>
             </div>
-            <button mat-icon-button (click)="openRenameDialog(file)">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button (click)="downloadFile(file)" aria-label="Download file">
-              <mat-icon>cloud_download</mat-icon>
-            </button>
+            <div matListItemMeta class="item-meta">
+              <span class="status-pill" [ngClass]="statusClass(file.status)" [attr.aria-label]="file.status" matTooltip="{{ file.status }}">{{ file.status }}</span>
+              <div class="item-actions">
+                <button mat-icon-button (click)="openRenameDialog(file)" matTooltip="Rename">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button (click)="downloadFile(file)" aria-label="Download file" matTooltip="Download">
+                  <mat-icon>cloud_download</mat-icon>
+                </button>
+              </div>
+            </div>
           </mat-list-item>
         </mat-list>
 

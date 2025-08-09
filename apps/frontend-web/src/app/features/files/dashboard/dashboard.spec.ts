@@ -109,10 +109,10 @@ describe('Dashboard - behaviors', () => {
     expect((saveAs as unknown as jest.Mock).mock.calls.length).toBe(1);
   });
 
-  it('openRenameDialog should rename file and update list', () => {
+  it('openRenameDialog should rename file and update list', async () => {
     // Seed current files
     component.files.set(initialFiles);
-    component.openRenameDialog(initialFiles[0]);
+    await component.openRenameDialog(initialFiles[0]);
     expect((fileServiceStub.renameFile as unknown as jest.Mock).mock.calls.length).toBe(1);
   });
 
@@ -154,7 +154,7 @@ describe('Dashboard - behaviors', () => {
     consoleSpy.mockRestore();
   });
 
-  it('openRenameDialog should do nothing when canceled', () => {
+  it('openRenameDialog should do nothing when canceled', async () => {
     // Seed
     component.files.set(initialFiles);
     // Configure dialog to return undefined (cancel)
@@ -164,11 +164,11 @@ describe('Dashboard - behaviors', () => {
 
     const renameSpy = fileServiceStub.renameFile as unknown as jest.Mock;
     const callsBefore = renameSpy.mock.calls.length;
-    component.openRenameDialog(initialFiles[0]);
+    await component.openRenameDialog(initialFiles[0]);
     expect(renameSpy.mock.calls.length).toBe(callsBefore);
   });
 
-  it('openRenameDialog should handle rename error and stop loading', () => {
+  it('openRenameDialog should handle rename error and stop loading', async () => {
     component.files.set(initialFiles);
     // Configure dialog to return a new name
     const dlg = TestBed.inject(MatDialog) as unknown as { open: jest.Mock };
@@ -177,7 +177,7 @@ describe('Dashboard - behaviors', () => {
 
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     (fileServiceStub.renameFile as unknown as jest.Mock).mockReturnValueOnce(throwError(() => new Error('rename')));
-    component.openRenameDialog(initialFiles[0]);
+    await component.openRenameDialog(initialFiles[0]);
     expect(component.isLoading()).toBe(false);
     consoleSpy.mockRestore();
   });

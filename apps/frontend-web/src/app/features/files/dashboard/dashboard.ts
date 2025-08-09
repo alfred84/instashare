@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Auth } from '../../../core/auth/auth.service';
 import { FileService, UserFile } from '../../../core/files/file.service';
 import { saveAs } from 'file-saver';
@@ -12,7 +12,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { RenameDialog } from '../../../shared/dialogs/rename-dialog/rename-dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,14 +28,20 @@ import { RenameDialog } from '../../../shared/dialogs/rename-dialog/rename-dialo
     MatToolbarModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    MatTooltipModule,
+    MatProgressBarModule,
+    MatSnackBarModule,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard implements OnInit {
   private authService = inject(Auth);
   private fileService = inject(FileService);
   private dialog = inject(MatDialog);
+  private snackbar = inject(MatSnackBar);
+  private platformId = inject(PLATFORM_ID);
 
   files = signal<UserFile[]>([]);
   isLoading = signal<boolean>(false);
@@ -51,6 +59,7 @@ export class Dashboard implements OnInit {
       },
       error: (err: unknown) => {
         console.error('Error loading files', err);
+        this.toast('Failed to load files', 'Dismiss');
         this.isLoading.set(false);
       },
     });
@@ -64,9 +73,11 @@ export class Dashboard implements OnInit {
       this.fileService.uploadFile(file).subscribe({
         next: () => {
           this.loadFiles(); // Refresh the file list
+          this.toast('File uploaded', 'OK', 2500);
         },
         error: (err: unknown) => {
           console.error('Error uploading file', err);
+          this.toast('Upload failed', 'Dismiss');
           this.isLoading.set(false);
         },
       });
@@ -80,6 +91,7 @@ export class Dashboard implements OnInit {
       },
       error: (err: unknown) => {
         console.error('Error downloading file', err);
+        this.toast('Download failed', 'Dismiss');
       },
     });
   }
@@ -88,7 +100,32 @@ export class Dashboard implements OnInit {
     this.authService.logout();
   }
 
-  openRenameDialog(file: UserFile): void {
+  async requestLogout(): Promise<void> {
+    try {
+      const { ConfirmDialog } = await import('../../../shared/dialogs/confirm-dialog/confirm-dialog');
+      const dialogRef = this.dialog.open(ConfirmDialog, {
+        width: '420px',
+        data: {
+          title: 'Logout',
+          message: 'Are you sure you want to logout?',
+          confirmText: 'Logout',
+          cancelText: 'Cancel',
+        },
+      });
+
+      dialogRef.afterClosed().subscribe((confirmed?: boolean) => {
+        if (confirmed) {
+          this.logout();
+        }
+      });
+    } catch {
+      // Fallback: if dynamic import fails, perform direct logout to avoid trapping users
+      this.logout();
+    }
+  }
+
+  async openRenameDialog(file: UserFile): Promise<void> {
+    const { RenameDialog } = await import('../../../shared/dialogs/rename-dialog/rename-dialog');
     const dialogRef = this.dialog.open(RenameDialog, {
       width: '500px',
       data: { fileName: file.originalName },
@@ -108,13 +145,51 @@ export class Dashboard implements OnInit {
               return newFiles;
             });
             this.isLoading.set(false);
+            this.toast('File renamed', 'OK', 2500);
           },
           error: (err: unknown) => {
             console.error('Error renaming file', err);
+            this.toast('Rename failed', 'Dismiss');
             this.isLoading.set(false);
           },
         });
       }
     });
+  }
+
+  trackById(index: number, file: UserFile): string {
+    return file.id;
+  }
+
+  chipColor(status: string): 'primary' | 'accent' | 'warn' | undefined {
+    switch (status) {
+      case 'COMPLETED':
+        return 'primary';
+      case 'PROCESSING':
+        return 'accent';
+      case 'FAILED':
+        return 'warn';
+      default:
+        return undefined;
+    }
+  }
+
+  statusClass(status: string): string {
+    switch (status) {
+      case 'COMPLETED':
+        return 'completed';
+      case 'PROCESSING':
+        return 'processing';
+      case 'FAILED':
+        return 'failed';
+      default:
+        return 'unknown';
+    }
+  }
+
+  private toast(message: string, action: string, duration = 3000): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.snackbar.open(message, action, { duration });
+    }
   }
 }
