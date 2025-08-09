@@ -1,4 +1,5 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -39,24 +40,28 @@ export class Auth {
 
   private http = inject(HttpClient);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
+  private isBrowser = isPlatformBrowser(this.platformId);
 
   constructor() {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      try {
-        const decodedToken: { userId: string; email: string; exp: number } = jwtDecode(token);
-        if (decodedToken.exp * 1000 > Date.now()) {
-          const user: User = {
-            id: decodedToken.userId,
-            email: decodedToken.email,
-          };
-          this.authState.set({ currentUser: user, token: token });
-        } else {
+    if (this.isBrowser) {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        try {
+          const decodedToken: { userId: string; email: string; exp: number } = jwtDecode(token);
+          if (decodedToken.exp * 1000 > Date.now()) {
+            const user: User = {
+              id: decodedToken.userId,
+              email: decodedToken.email,
+            };
+            this.authState.set({ currentUser: user, token: token });
+          } else {
+            localStorage.removeItem('auth_token');
+          }
+        } catch (error) {
           localStorage.removeItem('auth_token');
+          console.error('Invalid token in localStorage', error);
         }
-      } catch (error) {
-        localStorage.removeItem('auth_token');
-        console.error('Invalid token in localStorage', error);
       }
     }
   }
@@ -76,20 +81,29 @@ export class Auth {
   }
 
   logout(): void {
-    localStorage.removeItem('auth_token');
+    if (this.isBrowser) {
+      localStorage.removeItem('auth_token');
+    }
     this.authState.set({ currentUser: null, token: null });
-    this.router.navigate(['/login']);
+    // Router navigation is fine on browser; on server it's a no-op during render
+    if (this.isBrowser) {
+      this.router.navigate(['/login']);
+    }
   }
 
   private handleAuthSuccess(response: AuthResponse): void {
-    localStorage.setItem('auth_token', response.accessToken);
+    if (this.isBrowser) {
+      localStorage.setItem('auth_token', response.accessToken);
+    }
     const decodedToken: { userId: string; email: string } = jwtDecode(response.accessToken);
     const user: User = {
       id: decodedToken.userId,
       email: decodedToken.email,
     };
     this.authState.set({ currentUser: user, token: response.accessToken });
-    this.router.navigate(['/dashboard']);
+    if (this.isBrowser) {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
