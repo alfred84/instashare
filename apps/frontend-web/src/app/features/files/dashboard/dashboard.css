@@ -1,9 +1,31 @@
+/* Reserve horizontal space so text doesn't overlap the right meta */
+.file-item .mdc-list-item__content,
+.file-item .mat-mdc-list-item .mdc-list-item__content {
+  padding-right: 120px; /* space for dot + two icon buttons */
+  box-sizing: border-box;
+}
 .spacer {
   flex: 1 1 auto;
 }
 
 .dashboard-container {
-  padding: 2rem;
+  padding: 16px;
+  max-width: 900px;
+  margin: 72px auto 24px;
+}
+
+/* Performance: avoid rendering offscreen content immediately and reserve space */
+.dashboard-container mat-card-content {
+  content-visibility: auto;
+  contain-intrinsic-size: 600px; /* approximate height to prevent CLS */
+}
+
+/* Top app toolbar */
+.top-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 mat-card-actions {
@@ -37,10 +59,167 @@ mat-card-actions {
   vertical-align: middle; /* Align with the text next to it */
 }
 
-mat-list-item button {
-  margin-left: auto;
+/* Card header for files panel */
+.files-header {
+  padding: 12px 16px 8px 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.files-header mat-card-title {
+  margin: 0; /* override global title margin inside header */
 }
 
-mat-card-title {
-  margin-bottom: 1.5rem;
+/* List items with alternating backgrounds and subtle shadow */
+.file-item {
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: visible; /* allow trailing meta (actions) to remain visible */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  position: relative; /* allow absolute-positioned meta */
+}
+.file-item .mat-mdc-list-item,
+.file-item .mdc-list-item {
+  overflow: visible !important; /* override MDC default hidden overflow */
+}
+.file-item [matListItemTitle] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* allow title to shrink before meta */
+}
+.file-item:nth-child(odd) {
+  background: #f7f9fc;
+}
+.file-item:nth-child(even) {
+  background: #ffffff;
+}
+
+/* Right-aligned action buttons container */
+.item-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Chips spacing */
+.status-chips { margin: 0 8px 0 0; }
+
+/* Meta container on the right (status + actions) */
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: visible;
+  flex-shrink: 0;
+  min-width: 132px; /* room for 2 icon buttons + small chip */
+}
+.file-item .mat-mdc-list-item-meta {
+  flex: 0 0 auto; /* ensure meta (status + actions) doesn't shrink off-screen */
+  margin-right: 0; /* override default margins when absolutely positioned */
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
+}
+.item-meta .item-actions {
+  margin-left: auto; /* keep actions flush-right; chip stays just to their left */
+  flex: 0 0 auto;
+}
+.item-meta .status-chips { flex: 0 0 auto; }
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.04) inset;
+}
+.status-dot.completed { background-color: #2e7d32; }
+.status-dot.processing { background-color: #0288d1; }
+.status-dot.failed { background-color: #c62828; }
+.status-dot.unknown { background-color: #9e9e9e; }
+
+/* Compact status pill (text) shown to the immediate left of actions */
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-right: 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #eef2f7;
+  color: #344054;
+}
+.status-pill.completed { background: #e6f4ea; color: #1b5e20; border-color: rgba(46,125,50,0.25); }
+.status-pill.processing { background: #e3f2fd; color: #01579b; border-color: rgba(2,136,209,0.25); }
+.status-pill.failed { background: #ffebee; color: #b71c1c; border-color: rgba(198,40,40,0.25); }
+.status-pill.unknown { background: #f3f4f6; color: #374151; border-color: rgba(0,0,0,0.1); }
+.status-chips .mat-mdc-chip, .status-chips .mdc-evolution-chip {
+  transform: scale(0.92);
+  transform-origin: right center;
+}
+
+/* On very narrow screens, favor action visibility */
+@media (max-width: 420px) {
+  .status-chips { display: none; }
+}
+
+/* Skeleton loader styles */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+.skeleton-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f2f4f7 25%, #e9edf3 37%, #f2f4f7 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.skeleton-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.06);
+  margin-right: 12px;
+}
+.skeleton-text {
+  flex: 1;
+}
+.skeleton-line {
+  height: 10px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 4px;
+  margin: 6px 0;
+}
+.skeleton-line.w-60 { width: 60%; }
+.skeleton-line.w-40 { width: 40%; }
+.skeleton-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 12px;
+}
+.skeleton-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.08);
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
 }

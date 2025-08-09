@@ -118,11 +118,22 @@ It listens for upload events and stores the ZIP in the database. Status flow: UP
 npx nx serve frontend-web --port=4201
 ```
 
+  SSR (Angular Universal + hydration) is enabled by default when using the dev server above.
+  The app renders on the server and hydrates on the client at <http://localhost:4201>.
+
   Option B (static server – same used by E2E):
 
 ```powershell
 npx nx run frontend-web:serve-static --port=4300
 ```
+
+## Production Build
+
+```powershell
+npx nx build frontend-web
+```
+
+Outputs to `dist/apps/frontend-web` (client and server bundles with SSR).
 
 Testing
 
@@ -146,6 +157,32 @@ Notes:
 
 - The preset starts a static server for the frontend at <http://localhost:4300>
 - Port 4300 is used to avoid the Windows permissions issue on ::1:4200
+
+## SEO & SSR
+
+- Dynamic titles: set route titles via `data: { title: '...' }` in `apps/frontend-web/src/app/app.routes.ts`.
+  Titles are applied by `AppTitleStrategy` (`apps/frontend-web/src/app/core/seo/title.strategy.ts`) with the prefix "InstaShare —".
+- Dynamic meta tags & canonical: `SeoService` (`apps/frontend-web/src/app/core/seo/seo.service.ts`) updates
+  `description`, Open Graph, Twitter Card, and `<link rel="canonical">` on navigation.
+- Static SEO files: served from `apps/frontend-web/public/`.
+  - `robots.txt` (currently allows all; disallows `/dashboard`)
+  - `sitemap.xml` (dev points to `http://localhost:4201/...`) — update to your production domain when deploying.
+- SSR dev server: the command above runs with SSR output mode and hydration enabled.
+  - HttpClient is configured with `withFetch()` in `app.config.ts` for SSR compatibility.
+  - `file-saver` is allowed as CommonJS in `apps/frontend-web/project.json` to avoid build warnings.
+- SSR-safety: browser-only APIs (e.g., `localStorage`) are guarded with `isPlatformBrowser` in `Auth` service.
+- Tests: SEO unit tests under `apps/frontend-web/src/app/core/seo/*.spec.ts` verify title and meta behavior.
+
+## Performance & UX Enhancements
+
+- UI polish on dashboard:
+  - Status pill appears immediately to the left of action buttons; actions are right-aligned and always visible.
+  - Long filenames are truncated with ellipsis; right meta (status + actions) never clips off-screen.
+- Lazy-loaded dialogs: `RenameDialog` and `ConfirmDialog` are dynamically imported to reduce initial bundle size.
+- Asynchronous animations: `provideAnimationsAsync()` in `apps/frontend-web/src/app/app.config.ts` for non-blocking initialization.
+- Rendering optimization: `content-visibility: auto` with `contain-intrinsic-size` in `dashboard.css` to reduce offscreen work and layout shift.
+- Route preloading: standalone components with `data.preload: true` are preloaded in the browser (SSR-safe).
+- Skeleton loading states for the files list to improve perceived performance.
 
 API Usage (PowerShell)
 
@@ -180,6 +217,14 @@ Troubleshooting (Windows)
   Check that port 4300 is free and that the serve-static command starts correctly.
 - Upload/compression does not switch to COMPLETED
   Verify that Redis is running and that the file-processor worker is running.
+- Build error: `Could not resolve "@angular/animations/browser"`
+  Install animations to match the Angular version:
+  
+  ```powershell
+  npm install @angular/animations@~20.1.0 --legacy-peer-deps
+  ```
+  
+  As a temporary workaround, you can switch to `provideNoopAnimations()` in `apps/frontend-web/src/app/app.config.ts`.
 
 License
 MIT

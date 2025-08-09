@@ -21,7 +21,15 @@
             "input": "apps/frontend-web/public"
           }
         ],
-        "styles": ["apps/frontend-web/src/styles.scss"]
+        "styles": ["apps/frontend-web/src/styles.scss"],
+        "server": "apps/frontend-web/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/frontend-web/src/server.ts"
+        },
+        "outputMode": "server",
+        "allowedCommonJsDependencies": [
+          "file-saver"
+        ]
       },
       "configurations": {
         "production": {
