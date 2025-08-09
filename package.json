@@ -61,6 +61,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@angular-devkit/build-angular": "~20.1.0",
     "@angular/cdk": "^20.1.5",
     "@angular/common": "~20.1.0",
     "@angular/compiler": "~20.1.0",
@@ -69,7 +70,9 @@
     "@angular/material": "^20.1.5",
     "@angular/platform-browser": "~20.1.0",
     "@angular/platform-browser-dynamic": "~20.1.0",
+    "@angular/platform-server": "~20.1.0",
     "@angular/router": "~20.1.0",
+    "@angular/ssr": "~20.1.0",
     "@prisma/client": "^6.13.0",
     "archiver": "^7.0.1",
     "bcryptjs": "^3.0.2",
