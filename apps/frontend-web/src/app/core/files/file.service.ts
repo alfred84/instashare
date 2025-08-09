@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Auth } from './auth';
+import { Auth } from '../auth/auth.service';
 
 // Interface for the file data model
 export interface UserFile {
@@ -16,7 +16,7 @@ export interface UserFile {
 @Injectable({
   providedIn: 'root',
 })
-export class FileService { // Renamed from 'File' to avoid conflict
+export class FileService {
   private readonly apiUrl = 'http://localhost:3333/api/files';
   private authService = inject(Auth);
   private http = inject(HttpClient);

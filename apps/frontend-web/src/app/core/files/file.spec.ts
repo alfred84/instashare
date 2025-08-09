@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { FileService, UserFile } from './file';
-import { Auth } from './auth';
+import { FileService, UserFile } from './file.service';
+import { Auth } from '../auth/auth.service';
 import type { Signal } from '@angular/core';
 
 describe('FileService', () => {

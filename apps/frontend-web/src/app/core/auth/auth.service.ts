@@ -25,7 +25,7 @@ export interface AuthState {
 })
 export class Auth {
   private readonly apiUrl = 'http://localhost:3333/api/auth';
-  
+
   // State management with signals
   private authState = signal<AuthState>({
     currentUser: null,
