@@ -8,6 +8,10 @@ export default {
     '!<rootDir>/src/**/*.spec.ts',
     '!<rootDir>/src/test-setup.ts',
     '!<rootDir>/src/main.ts',
+    // Exclude legacy directories kept temporarily during migration
+    '!<rootDir>/src/app/components/**/*.ts',
+    '!<rootDir>/src/app/services/**/*.ts',
+    '!<rootDir>/src/app/guards/**/*.ts',
   ],
   coverageThreshold: {
     global: {

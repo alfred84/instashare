@@ -1,6 +1,20 @@
 /// <reference types="cypress" />
 export {};
 
+// Ensure TS knows about our custom commands in this compilation unit
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    interface Chainable<Subject = any> {
+      loginByUI(email: string, password: string): Chainable<void>;
+      loginByApi(email: string, password: string): Chainable<void>;
+      registerByApi(email: string, password: string): Chainable<void>;
+      logout(): Chainable<void>;
+    }
+  }
+}
+
 // ***********************************************
 // This example commands.ts shows you how to
 // create various custom commands and overwrite
@@ -10,19 +24,6 @@ export {};
 // commands please read more here:
 // https://on.cypress.io/custom-commands
 // ***********************************************
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Cypress {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface Chainable<Subject> {
-      loginByUI(email: string, password: string): Chainable<void>;
-      loginByApi(email: string, password: string): Chainable<void>;
-      registerByApi(email: string, password: string): Chainable<void>;
-      logout(): Chainable<void>;
-    }
-  }
-}
 
 // -- UI login command --
 Cypress.Commands.add('loginByUI', (email: string, password: string) => {
@@ -59,6 +60,8 @@ Cypress.Commands.add('registerByApi', (email: string, password: string) => {
 // -- Logout command --
 Cypress.Commands.add('logout', () => {
   window.localStorage.removeItem('auth_token');
+  // keep command chainable positionally without returning a value
+  cy.wrap(undefined);
 });
 //
 // -- This is a child command --
