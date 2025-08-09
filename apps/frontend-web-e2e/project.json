@@ -6,5 +6,13 @@
   "tags": [],
   "implicitDependencies": ["frontend-web"],
   "// targets": "to see all targets run: nx show project frontend-web-e2e --web",
-  "targets": {}
+  "targets": {
+    "e2e": {
+      "executor": "@nx/cypress:cypress",
+      "options": {
+        "cypressConfig": "apps/frontend-web-e2e/cypress.config.ts",
+        "testingType": "e2e"
+      }
+    }
+  }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Auth } from '../../services/auth';
-import { FileService, UserFile } from '../../services/file';
+import { Auth } from '../../../core/auth/auth.service';
+import { FileService, UserFile } from '../../../core/files/file.service';
 import { saveAs } from 'file-saver';
 
 // Material Imports
@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { RenameDialog } from '../rename-dialog/rename-dialog';
+import { RenameDialog } from '../../../shared/dialogs/rename-dialog/rename-dialog';
 
 @Component({
   selector: 'app-dashboard',
@@ -45,11 +45,11 @@ export class Dashboard implements OnInit {
   loadFiles(): void {
     this.isLoading.set(true);
     this.fileService.getFiles().subscribe({
-      next: (files) => {
+      next: (files: UserFile[]) => {
         this.files.set(files);
         this.isLoading.set(false);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error loading files', err);
         this.isLoading.set(false);
       },
@@ -65,7 +65,7 @@ export class Dashboard implements OnInit {
         next: () => {
           this.loadFiles(); // Refresh the file list
         },
-        error: (err) => {
+        error: (err: unknown) => {
           console.error('Error uploading file', err);
           this.isLoading.set(false);
         },
@@ -75,10 +75,10 @@ export class Dashboard implements OnInit {
 
   downloadFile(file: UserFile): void {
     this.fileService.downloadFile(file.id).subscribe({
-      next: (blob) => {
+      next: (blob: Blob) => {
         saveAs(blob, `${file.originalName}.zip`);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error downloading file', err);
       },
     });
@@ -94,11 +94,11 @@ export class Dashboard implements OnInit {
       data: { fileName: file.originalName },
     });
 
-    dialogRef.afterClosed().subscribe(newName => {
+    dialogRef.afterClosed().subscribe((newName?: string) => {
       if (newName && newName !== file.originalName) {
         this.isLoading.set(true);
         this.fileService.renameFile(file.id, newName).subscribe({
-          next: (updatedFile) => {
+          next: (updatedFile: UserFile) => {
             this.files.update(currentFiles => {
               const index = currentFiles.findIndex(f => f.id === file.id);
               const newFiles = [...currentFiles];
@@ -109,7 +109,7 @@ export class Dashboard implements OnInit {
             });
             this.isLoading.set(false);
           },
-          error: (err) => {
+          error: (err: unknown) => {
             console.error('Error renaming file', err);
             this.isLoading.set(false);
           },

@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
+import { Router, UrlTree, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { authGuard } from './auth.guard';
-import { Auth } from '../services/auth';
+import { Auth } from '../auth/auth.service';
 
 describe('authGuard', () => {
   let router: Router;
@@ -21,14 +21,14 @@ describe('authGuard', () => {
   it('returns true when authenticated', () => {
     const auth = TestBed.inject(Auth) as unknown as { isAuthenticated: jest.Mock };
     auth.isAuthenticated.mockReturnValue(true);
-    const result = TestBed.runInInjectionContext(() => authGuard({} as any, {} as any));
+    const result = TestBed.runInInjectionContext(() => authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
     expect(result).toBe(true);
   });
 
   it('redirects to /login when not authenticated', () => {
     const auth = TestBed.inject(Auth) as unknown as { isAuthenticated: jest.Mock };
     auth.isAuthenticated.mockReturnValue(false);
-    const result = TestBed.runInInjectionContext(() => authGuard({} as any, {} as any));
+    const result = TestBed.runInInjectionContext(() => authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
     expect(result).toEqual(router.parseUrl('/login'));
     expect(result instanceof UrlTree).toBe(true);
   });

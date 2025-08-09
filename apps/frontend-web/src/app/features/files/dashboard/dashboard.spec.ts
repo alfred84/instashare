@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
-import { Auth } from '../../services/auth';
-import { FileService, UserFile } from '../../services/file';
+import { Auth } from '../../../core/auth/auth.service';
+import { FileService, UserFile } from '../../../core/files/file.service';
 import { MatDialog } from '@angular/material/dialog';
 jest.mock('file-saver', () => ({ saveAs: jest.fn() }));
 import { saveAs } from 'file-saver';

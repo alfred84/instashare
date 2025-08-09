@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Auth } from '../../services/auth';
+import { Auth } from '../../../core/auth/auth.service';
 
 // Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-login',
   standalone: true,
   imports: [
     CommonModule,
@@ -22,29 +22,29 @@ import { CommonModule } from '@angular/common';
     MatInputModule,
     MatButtonModule,
   ],
-  templateUrl: './register.html',
-  styleUrls: ['./register.css'],
+  templateUrl: './login.html',
+  styleUrls: ['./login.css'],
 })
-export class Register {
+export class Login {
   private fb = inject(FormBuilder);
   private authService = inject(Auth);
   private router = inject(Router);
 
-  registerForm = this.fb.group({
+  loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', [Validators.required]],
   });
 
-  register(): void {
-    if (this.registerForm.valid) {
-      const { email, password } = this.registerForm.value;
+  login(): void {
+    if (this.loginForm.valid) {
+      const { email, password } = this.loginForm.value;
       if (email && password) {
-        this.authService.register({ email, password }).subscribe({
+        this.authService.login({ email, password }).subscribe({
           next: () => {
             // Navigation is handled in the service
           },
-          error: (err) => {
-            console.error('Registration failed', err);
+          error: (err: unknown) => {
+            console.error('Login failed', err);
             // Here you would typically show an error message to the user
           },
         });

@@ -1,3 +1,5 @@
+export {};
+
 function fakeJwt(payload: Record<string, unknown>): string {
   const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
   const body = btoa(JSON.stringify(payload));

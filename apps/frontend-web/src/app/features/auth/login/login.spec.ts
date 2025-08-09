@@ -1,23 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Register } from './register';
-import { Auth } from '../../services/auth';
+import { Login } from './login';
+import { Auth } from '../../../core/auth/auth.service';
 import { RouterTestingModule } from '@angular/router/testing';
 
-describe('Register', () => {
-  let component: Register;
-  let fixture: ComponentFixture<Register>;
+describe('Login', () => {
+  let component: Login;
+  let fixture: ComponentFixture<Login>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Register, RouterTestingModule],
+      imports: [Login, RouterTestingModule],
       providers: [
-        { provide: Auth, useValue: { register: jest.fn() } as Partial<Auth> },
+        { provide: Auth, useValue: { login: jest.fn() } as Partial<Auth> },
       ],
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Register);
+    fixture = TestBed.createComponent(Login);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -32,66 +32,67 @@ import { of, throwError } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { FormBuilder } from '@angular/forms';
 
-describe('Register - behaviors', () => {
-  let component: Register;
-  let fixture: ComponentFixture<Register>;
-  let registerMock: jest.Mock;
+describe('Login - behaviors', () => {
+  let component: Login;
+  let fixture: ComponentFixture<Login>;
+  let loginMock: jest.Mock;
 
   beforeEach(async () => {
-    registerMock = jest.fn().mockReturnValue(of({ accessToken: 'fake' }));
-    const authStub: Pick<Auth, 'register'> = {
-      register: registerMock as unknown as Auth['register'],
+    loginMock = jest.fn().mockReturnValue(of({ accessToken: 'fake' }));
+    const authStub: Pick<Auth, 'login'> = {
+      login: loginMock as unknown as Auth['login'],
     };
 
     await TestBed.configureTestingModule({
-      imports: [Register, RouterTestingModule],
+      imports: [Login, RouterTestingModule],
       providers: [{ provide: Auth, useValue: authStub }],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Register);
+    fixture = TestBed.createComponent(Login);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should disable submit button when form invalid', () => {
+  it('should have submit button disabled when form invalid', () => {
     const btn: HTMLButtonElement = fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement;
     expect(btn.disabled).toBe(true);
-    component.registerForm.patchValue({ email: 'user@example.com' });
+    component.loginForm.patchValue({ email: 'user@example.com' });
     fixture.detectChanges();
     expect(btn.disabled).toBe(true);
   });
 
-  it('should call Auth.register when form valid and submitted', () => {
-    component.registerForm.setValue({ email: 'new@e.com', password: 'password123' });
+  it('should call Auth.login with credentials when form valid and submitted', () => {
+    component.loginForm.setValue({ email: 'user@example.com', password: 'secret' });
     fixture.detectChanges();
 
     const form = fixture.debugElement.query(By.css('form'));
     form.triggerEventHandler('ngSubmit', {});
-    expect(registerMock).toHaveBeenCalledWith({ email: 'new@e.com', password: 'password123' });
+    expect(loginMock).toHaveBeenCalledWith({ email: 'user@example.com', password: 'secret' });
   });
 
-  it('should not call Auth.register when form is invalid', () => {
+  it('should not call Auth.login when form is invalid', () => {
+    // form starts invalid by default
     const form = fixture.debugElement.query(By.css('form'));
     form.triggerEventHandler('ngSubmit', {});
-    expect(registerMock).not.toHaveBeenCalled();
+    expect(loginMock).not.toHaveBeenCalled();
   });
 
-  it('should log error when Auth.register emits error', () => {
+  it('should log error when Auth.login emits error', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    component.registerForm.setValue({ email: 'new@e.com', password: 'password123' });
-    registerMock.mockReturnValueOnce(throwError(() => new Error('bad')));
+    component.loginForm.setValue({ email: 'user@example.com', password: 'secret' });
+    loginMock.mockReturnValueOnce(throwError(() => new Error('bad')));
     const form = fixture.debugElement.query(By.css('form'));
     form.triggerEventHandler('ngSubmit', {});
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 
-  it('should not call Auth.register when form is valid but missing credentials', () => {
+  it('should not call Auth.login when form is valid but missing credentials', () => {
     // Replace the form with one without validators so it's valid even when empty
-    component.registerForm = new FormBuilder().group({ email: [''], password: [''] });
+    component.loginForm = new FormBuilder().group({ email: [''], password: [''] });
     fixture.detectChanges();
     const form = fixture.debugElement.query(By.css('form'));
     form.triggerEventHandler('ngSubmit', {});
-    expect(registerMock).not.toHaveBeenCalled();
+    expect(loginMock).not.toHaveBeenCalled();
   });
 });
