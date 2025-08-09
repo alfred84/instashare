@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Disallow sensitive or non-indexable routes
+Disallow: /dashboard
+
+Sitemap: /sitemap.xml
